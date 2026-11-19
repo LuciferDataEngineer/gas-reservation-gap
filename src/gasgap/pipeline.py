@@ -59,6 +59,73 @@ def signed(value: float) -> str:
     return f"{mark}{abs(round(value)):,.0f}"
 
 
+_MONTHS = {
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "may": 5,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
+}
+
+
+def _quarter_start(label: str) -> datetime:
+    day, mon, year = str(label).split()[0].split("-")
+    return datetime(int(year), _MONTHS[mon[:3].lower()], int(day))
+
+
+def _next_quarter(when: datetime) -> datetime:
+    month = when.month + 3
+    year = when.year + (month - 1) // 12
+    month = (month - 1) % 12 + 1
+    return datetime(year, month, 1)
+
+
+def _about_money(value: float) -> str:
+    stepped = int(abs(value) * 2 + 0.5) / 2
+    if abs(stepped - int(stepped)) < 1e-9:
+        return f"${int(stepped)}"
+    return f"${stepped:.2f}"
+
+
+def _high_quarter_note(published: list[dict]) -> str:
+    """Note the highest quarter when it sits above the usual range. Otherwise say nothing."""
+    if len(published) < 4:
+        return ""
+    prices = sorted(float(item["price"]) for item in published)
+    n = len(prices)
+
+    def quantile(p: float) -> float:
+        pos = p * (n - 1)
+        lo = int(pos)
+        hi = min(lo + 1, n - 1)
+        return prices[lo] * (1 - (pos - lo)) + prices[hi] * (pos - lo)
+
+    fence = quantile(0.75) + 1.5 * (quantile(0.75) - quantile(0.25))
+    top = max(published, key=lambda item: item["price"])
+    if top["price"] <= fence:
+        return ""
+    index = next(i for i, item in enumerate(published) if item is top)
+    if index == 0:
+        return ""
+    prev = published[index - 1]
+    jump = top["price"] - prev["price"]
+    if jump < 0.5:
+        return ""
+    months = (top["dt"].year - prev["dt"].year) * 12 + top["dt"].month - prev["dt"].month
+    before = "the quarter before" if months == 3 else "the previous published quarter"
+    return (
+        f" {top['full']} is the highest at ${top['price']:.2f}, "
+        f"about ${int(jump + 0.5)} above {before}, on {one(top['volume'])} PJ."
+    )
+
+
 def _load(db_path: Path) -> None:
     import dlt
 
@@ -477,25 +544,55 @@ def build_brief(con: duckdb.DuckDBPyConnection) -> dict:
         title="Price and cold",
         y_label="Average Melbourne 6am price, dollars per gigajoule, from 2023.",
     )
+    mild_price = float(cold.loc[cold["band"] == "Mild", "price"].iloc[0])
+    very_price = float(cold.loc[cold["band"] == "Very cold", "price"].iloc[0])
+    cold_premium = very_price - mild_price
+    if cold_premium >= 0.25:
+        cold_title = (
+            f"Very cold days cost about {_about_money(cold_premium)} more than mild ones; "
+            "export volume made no clear difference"
+        )
+    else:
+        cold_title = (
+            "Very cold and mild days cost about the same; export volume made no clear difference"
+        )
 
-    def quarter_name(label: str) -> str:
-        start = str(label).split()[0]
-        _day, mon, year = start.split("-")
-        quarter = {"Jan": "Q1", "Apr": "Q2", "Jul": "Q3", "Oct": "Q4"}[mon]
-        return f"{quarter} {year[2:]}"
-
+    by_start = {_quarter_start(r.quarter_label): r for r in deals.itertuples()}
+    cursor = min(by_start)
+    last_quarter = max(by_start)
+    quarters: list[tuple[datetime, object | None]] = []
+    while cursor <= last_quarter:
+        quarters.append((cursor, by_start.get(cursor)))
+        cursor = _next_quarter(cursor)
+    deal_rows: list[dict] = []
+    exact_bits: list[str] = []
+    published: list[dict] = []
+    for when, rec in quarters:
+        quarter = (when.month - 1) // 3 + 1
+        short = f"Q{quarter} {when.year % 100:02d}"
+        full = f"Q{quarter} {when.year}"
+        if rec is None:
+            deal_rows.append({"name": short, "gap": True})
+            exact_bits.append(f"{full} not published")
+            continue
+        price = float(rec.price_per_gj)
+        deal_rows.append({"name": short, "value": price, "label": f"{price:.0f}", "color": VIOLET})
+        exact_bits.append(f"{full} ${price:.2f}")
+        published.append({"full": full, "price": price, "volume": float(rec.volume_pj), "dt": when})
     deal_bars = bars(
-        [
-            {
-                "name": quarter_name(r.quarter_label),
-                "value": float(r.price_per_gj),
-                "label": f"{r.price_per_gj:.0f}",
-                "color": VIOLET,
-            }
-            for r in deals.itertuples()
-        ],
+        deal_rows,
         title="Published transaction prices",
-        y_label="Dollars per gigajoule, only quarters AEMO filled in.",
+        y_label="Dollars per gigajoule. Missing quarters are marked.",
+    )
+    deal_legend = [{"name": "Volume-weighted price where the cell was filled", "color": VIOLET}]
+    if any(rec is None for _, rec in quarters):
+        deal_legend.append({"name": "No published price", "color": AMBER})
+    deal_exact = (
+        "Exact values, dollars per gigajoule. "
+        + " · ".join(exact_bits)
+        + "."
+        + _high_quarter_note(published)
+        + " This is not a landed export price."
     )
     swqp = float(ref["SWQP"].capacity_value)
     iona_rate = float(ref["IONA"].capacity_value)
@@ -782,8 +879,8 @@ def build_brief(con: duckdb.DuckDBPyConnection) -> dict:
                 },
             ],
             "means": (
-                f"Winter 2026 started with Iona at {one(held('2026-05-31'))} PJ, essentially full "
-                f"against the published maximum of 24.4 PJ, and ended August at {one(held('2026-08-31'))} PJ. "
+                f"Iona started winter at {one(held('2026-05-31'))} PJ, at or slightly above "
+                f"its published 24.4 PJ maximum, and ended August at {one(held('2026-08-31'))} PJ. "
                 f"There was no empty tank in late May to park extra gas ahead of winter. "
                 f"By {gas_through} the level was {one(iona_now)} PJ, still falling after winter. "
                 f"Longford, the main Gippsland plant, averaged {whole(lf_2026)} TJ a day so far in 2026 "
@@ -870,7 +967,7 @@ def build_brief(con: duckdb.DuckDBPyConnection) -> dict:
             },
             "support": [
                 {
-                    "title": "Colder Melbourne days came with a higher morning price",
+                    "title": cold_title,
                     "svg": cold_bars,
                     "legend": [{"name": "Average 6am price since 2023", "color": BLUE}],
                     "exact": "Exact values. "
@@ -883,15 +980,8 @@ def build_brief(con: duckdb.DuckDBPyConnection) -> dict:
                 {
                     "title": "AEMO published a transaction price for some quarters only",
                     "svg": deal_bars,
-                    "legend": [
-                        {"name": "Volume-weighted price where the cell was filled", "color": VIOLET}
-                    ],
-                    "exact": "Exact values, dollars per gigajoule. "
-                    + ". ".join(
-                        f"{r.quarter_label}: ${r.price_per_gj:.2f} on {one(r.volume_pj)} PJ"
-                        for r in deals.itertuples()
-                    )
-                    + ". Empty quarters are left out. This is not a landed export price.",
+                    "legend": deal_legend,
+                    "exact": deal_exact,
                 },
             ],
             "means": causal["plain"]
