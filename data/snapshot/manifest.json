@@ -1,0 +1,191 @@
+{
+  "project": "gas-reservation-gap",
+  "accessed_aedt": "2026-11-20 09:14 AEDT",
+  "note": "Derived parquet files are the committed snapshot. SHA-256 values on sources are of the bytes downloaded from the URL. AEMO material is published for public download. The permissions page did not load from the build environment (HTTP 403), so this snapshot does not claim a Creative Commons licence for AEMO files. Open-Meteo is CC BY 4.0. Nothing here was invented.",
+  "sources": [
+    {
+      "id": "gbb_actual_flow_storage",
+      "publisher": "AEMO Gas Bulletin Board",
+      "url": "https://nemweb.com.au/Reports/CURRENT/GBB/GasBBActualFlowStorage.zip",
+      "licence": "\u00a9 AEMO. Public download, no API key. Not a Creative Commons licence.",
+      "coverage": "Facility flows and storage, gas days from 29 Sep 2018",
+      "bytes": 5093265,
+      "sha256": "02e8fb122484916c9a0d5a07aef4f8c2e02faa3ae6edce614761745cb4effd96",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "gbb_lng_shipments",
+      "publisher": "AEMO Gas Bulletin Board",
+      "url": "https://nemweb.com.au/Reports/CURRENT/GBB/GasBBLNGShipments.CSV",
+      "licence": "\u00a9 AEMO. Public download, no API key. Not a Creative Commons licence.",
+      "coverage": "LNG cargo volumes in PJ",
+      "bytes": 190787,
+      "sha256": "725c654003e3dd883e19e57a8c0d133bfdda1d033dd09aee74a78a1226a51cc3",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "gbb_lng_transactions",
+      "publisher": "AEMO Gas Bulletin Board",
+      "url": "https://nemweb.com.au/Reports/CURRENT/GBB/GasBBLNGTransactions.csv",
+      "licence": "\u00a9 AEMO. Public download, no API key. Not a Creative Commons licence.",
+      "coverage": "Quarterly LNG transaction volumes and volume-weighted prices",
+      "bytes": 971,
+      "sha256": "2d5a264f8d661582a0bb16d5f2cf25c140f51355b6f8cb248339c3f9d9575bf5",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "gsoo_figures",
+      "publisher": "AEMO",
+      "url": "https://www.aemo.com.au/-/media/files/gas/national_planning_and_forecasting/gsoo/2026/2026-gsoo-report-figures-and-data.xlsx",
+      "licence": "\u00a9 AEMO 2026. Use is subject to AEMO's published copyright permissions.",
+      "coverage": "2026 Gas Statement of Opportunities chart data, published 26 Mar 2026",
+      "bytes": 6405875,
+      "sha256": "133c36111fd4a2ece357c0c44d90ab9b59ba85ed9457738b5a944edaf1a2cdd6",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "gsoo_facilities",
+      "publisher": "AEMO",
+      "url": "https://www.aemo.com.au/-/media/files/gas/national_planning_and_forecasting/gsoo/2026/2026-gsoo-supply-data.xlsx",
+      "licence": "\u00a9 AEMO 2026. Use is subject to AEMO's published copyright permissions.",
+      "coverage": "2026 GSOO supply workbook: processing, storage, pipelines, LNG projects",
+      "bytes": 101512,
+      "sha256": "207220bb077f088eeda986a2eadaa6037cf16511e009b25fc0e6a511b7b5d44f",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "dwgm_prices",
+      "publisher": "AEMO DWGM",
+      "url": "https://www.aemo.com.au/-/media/files/gas/dwgm/dwgm-prices-and-demand.xlsx",
+      "licence": "\u00a9 AEMO. Public download, no API key. Not a Creative Commons licence.",
+      "coverage": "Victorian declared wholesale prices and daily demand",
+      "bytes": 940388,
+      "sha256": "d99624b916c5a8c5d170af8d0aad88cb5c3401bfc497f0f86e1ddd898d497b4b",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "sttm_prices",
+      "publisher": "AEMO STTM",
+      "url": "https://www.aemo.com.au/-/media/files/gas/sttm/data/sttm-price-and-withdrawals.xlsx",
+      "licence": "\u00a9 AEMO. Public download, no API key. Not a Creative Commons licence.",
+      "coverage": "Sydney, Adelaide and Brisbane short-term trading prices and allocations",
+      "bytes": 1681232,
+      "sha256": "960a1b8d7f72c140f6c0a0b4a61e438bc962e2c6ed5f432da49322a1cc7a5ac4",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "open_meteo_melbourne",
+      "publisher": "Open-Meteo",
+      "url": "https://archive-api.open-meteo.com/v1/archive?latitude=-37.8136&longitude=144.9631&start_date=2019-01-01&end_date=2026-11-18&daily=temperature_2m_mean&timezone=Australia%2FMelbourne",
+      "licence": "CC BY 4.0",
+      "coverage": "Daily mean temperature at -37.8136, 144.9631, timezone Australia/Melbourne",
+      "bytes": 51701,
+      "sha256": "2a6a95c962fd660df8a7ac7cd420709274c160fc250f4c40f22a289d54308db7",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "open_meteo_sydney",
+      "publisher": "Open-Meteo",
+      "url": "https://archive-api.open-meteo.com/v1/archive?latitude=-33.8688&longitude=151.2093&start_date=2019-01-01&end_date=2026-11-18&daily=temperature_2m_mean&timezone=Australia%2FSydney",
+      "licence": "CC BY 4.0",
+      "coverage": "Daily mean temperature at -33.8688, 151.2093, timezone Australia/Sydney",
+      "bytes": 52076,
+      "sha256": "ee7e70369038cf1445294395dd37bbb64fb924cd64fd0494e748973f40bfecef",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "open_meteo_adelaide",
+      "publisher": "Open-Meteo",
+      "url": "https://archive-api.open-meteo.com/v1/archive?latitude=-34.9285&longitude=138.6007&start_date=2019-01-01&end_date=2026-11-18&daily=temperature_2m_mean&timezone=Australia%2FAdelaide",
+      "licence": "CC BY 4.0",
+      "coverage": "Daily mean temperature at -34.9285, 138.6007, timezone Australia/Adelaide",
+      "bytes": 51974,
+      "sha256": "e30b5ad1c55330492016e66bb212f333a9f94cd3238aeb4882c28fdbae347a8f",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    },
+    {
+      "id": "open_meteo_hobart",
+      "publisher": "Open-Meteo",
+      "url": "https://archive-api.open-meteo.com/v1/archive?latitude=-42.8821&longitude=147.3272&start_date=2019-01-01&end_date=2026-11-18&daily=temperature_2m_mean&timezone=Australia%2FHobart",
+      "licence": "CC BY 4.0",
+      "coverage": "Daily mean temperature at -42.8821, 147.3272, timezone Australia/Hobart",
+      "bytes": 51283,
+      "sha256": "c99f58a8b2a49eef168b2848d8b1f63b6215be982b1d86be1ef4c2aae65d266f",
+      "accessed_aedt": "2026-11-20 09:14 AEDT"
+    }
+  ],
+  "derived": [
+    {
+      "path": "data/snapshot/facility_day.parquet",
+      "rows": 23723,
+      "bytes": 227870,
+      "sha256": "0dd4c946969613037bb4346b04d1ee6e44d1c8b1751d7a59dbec8e48dfda4149"
+    },
+    {
+      "path": "data/snapshot/southern_pipe_day.parquet",
+      "rows": 11892,
+      "bytes": 116988,
+      "sha256": "d454bfa917ee365fc8fc23e746ca025156818b1cc29c5a13ead509763fadc925"
+    },
+    {
+      "path": "data/snapshot/lng_shipments.parquet",
+      "rows": 2163,
+      "bytes": 35761,
+      "sha256": "c3c23a8480796de07020792cfd340514ee24fd2ebe4138f1a0c81020c1a95b01"
+    },
+    {
+      "path": "data/snapshot/lng_transactions.parquet",
+      "rows": 15,
+      "bytes": 4179,
+      "sha256": "3b7f3b24c00af5eb107ac114983744cc2d993f67ec56d5cd9b3596dbca59ebf9"
+    },
+    {
+      "path": "data/snapshot/facility_reference.parquet",
+      "rows": 7,
+      "bytes": 5526,
+      "sha256": "3f85a1bd601d5d7cd657e6c4c4d2d45fc5cf30996ac1be5253951b0c4741cd20"
+    },
+    {
+      "path": "data/snapshot/dwgm_daily.parquet",
+      "rows": 2861,
+      "bytes": 85995,
+      "sha256": "5b4420c0a67f985df5c934829470c875b92988a1dbba828f44d4940f8634cd31"
+    },
+    {
+      "path": "data/snapshot/sttm_daily.parquet",
+      "rows": 2830,
+      "bytes": 141336,
+      "sha256": "10f0eb50271ff64bcf864dfc44cc1941a85d0d5c312eee308f34351069c31ded"
+    },
+    {
+      "path": "data/snapshot/gsoo_adequacy_day.parquet",
+      "rows": 2557,
+      "bytes": 89841,
+      "sha256": "ed1df5d192fba496594108d14ee269e6052dfb447ed71b7f6bb60998e7c8aa1c"
+    },
+    {
+      "path": "data/snapshot/gsoo_annual_gap.parquet",
+      "rows": 60,
+      "bytes": 2723,
+      "sha256": "23e16dcc6bd4f56f6b4debc08717f999cd8d9ab7f49ef026158db7d1ffe398b1"
+    },
+    {
+      "path": "data/snapshot/gsoo_consumption.parquet",
+      "rows": 135,
+      "bytes": 3734,
+      "sha256": "562b6e364aede3bc8366653defdbdd952543ad22108b542e99d987e6765c413f"
+    },
+    {
+      "path": "data/snapshot/gsoo_southern_capacity.parquet",
+      "rows": 12,
+      "bytes": 2502,
+      "sha256": "b7fd4c26621bccc4dc7ce02527b34a40d1b1bf66fc0c14b052a640f928a5b1c9"
+    },
+    {
+      "path": "data/snapshot/hdd_daily.parquet",
+      "rows": 11516,
+      "bytes": 56151,
+      "sha256": "a5797185dcf1a89dcddcd311782309b377e5e10efb1e3c7f94c178fd9b9f8968"
+    }
+  ]
+}

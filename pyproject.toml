@@ -1,0 +1,50 @@
+[project]
+name = "gasgap"
+version = "0.1.0"
+description = "Would a 20 percent east-coast LNG reservation close the southern winter gap?"
+requires-python = ">=3.12"
+dependencies = [
+  "dlt[duckdb]==1.32.0",
+  "ibis-framework[duckdb]==12.0.0",
+  "duckdb==1.5.6",
+  "pandas==3.1.1",
+  "pyarrow==26.0.1",
+  "numpy==2.4.6",
+  "scikit-learn==1.9.1",
+  "dowhy==0.14",
+  "econml==0.17.1",
+  "openpyxl==3.1.5",
+  "requests==2.34.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.2.0",
+  "ruff==0.17.6",
+  "playwright==1.65.2",
+  "pyiceberg==0.12.0",
+  "s3fs==2026.9.0",
+  "feldera==0.384.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+# Prose, SQL and SVG templates are long on purpose.
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+  "browser: layout checks with Chromium",
+  "feldera: needs the Feldera service",
+  "iceberg: needs Nessie and the object store",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
