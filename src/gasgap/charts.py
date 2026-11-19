@@ -25,7 +25,7 @@ def bars(
     left, right, top, bottom = 64, 20, 36, 52
     plot_w = width - left - right
     plot_h = height - top - bottom
-    values = [float(row["value"]) for row in rows] or [0.0]
+    values = [float(row["value"]) for row in rows if not row.get("gap")] or [0.0]
     lo = min(0.0, min(values))
     hi = max(0.0, max(values))
     if hi == lo:
@@ -54,9 +54,26 @@ def bars(
         f'<line x1="{left}" y1="{zero:.1f}" x2="{width - right}" y2="{zero:.1f}" class="zero"/>'
     )
     for i, row in enumerate(rows):
-        value = float(row["value"])
         cx = left + slot * i + slot / 2
         bw = min(48, slot * 0.55)
+        if row.get("gap"):
+            # Empty quarter: a dashed marker on the baseline, not a zero price.
+            mark_h = min(46.0, plot_h * 0.16)
+            top_y = zero - mark_h
+            parts.append(
+                f'<rect class="gap" x="{cx - bw / 2:.1f}" y="{top_y:.1f}" width="{bw:.1f}" '
+                f'height="{mark_h:.1f}" fill="none" stroke="#ffc14d" stroke-width="1.5" '
+                f'stroke-dasharray="4 3" rx="3"/>'
+            )
+            parts.append(
+                f'<text class="gap-label" x="{cx:.1f}" y="{top_y - 8:.1f}" text-anchor="middle">gap</text>'
+            )
+            parts.append(
+                f'<text class="axis" x="{cx:.1f}" y="{height - 18}" text-anchor="middle">'
+                f"{_esc(row['name'])}</text>"
+            )
+            continue
+        value = float(row["value"])
         y0, y1 = sorted((zero, y(value)))
         parts.append(
             f'<rect x="{cx - bw / 2:.1f}" y="{y0:.1f}" width="{bw:.1f}" height="{max(y1 - y0, 1):.1f}" '
@@ -75,6 +92,11 @@ def bars(
     return "\n".join(parts)
 
 
+def _text_width(text: str, font: float = 14) -> float:
+    """Conservative width so an end label reserved on the right stays inside the frame."""
+    return len(text) * font * 0.68 + 2
+
+
 def lines(
     series: list[dict],
     *,
@@ -82,9 +104,14 @@ def lines(
     y_label: str,
     width: int = 1000,
     height: int = 340,
+    decimals: int = 1,
 ) -> str:
     """``series`` items have name, color, and points [(x_label, value), ...]. Shared x order."""
-    left, right, top, bottom = 64, 24, 36, 48
+    font = 14
+    end_labels = [f"{s['name']} {float(s['points'][-1][1]):,.{decimals}f}" for s in series]
+    # Gutter to the right of the last point, so the end label cannot sit on the stroke.
+    text_w = max(_text_width(label, font) for label in end_labels)
+    left, right, top, bottom = 64, int(text_w + 24), 36, 48
     plot_w = width - left - right
     plot_h = height - top - bottom
     labels = [p[0] for p in series[0]["points"]]
@@ -115,6 +142,9 @@ def lines(
             f'<text class="axis" x="{left - 8}" y="{yy + 4:.1f}" text-anchor="end">{value:,.0f}</text>'
         )
     many = len(labels) > 16
+    glyph_above = font * 0.82
+    glyph_below = font * 0.28
+    occupied: list[tuple[float, float, float, float]] = []
     for s_i, s in enumerate(series):
         coords = " ".join(f"{x(i):.1f},{y(float(v)):.1f}" for i, (_, v) in enumerate(s["points"]))
         parts.append(
@@ -126,11 +156,26 @@ def lines(
                     f'<circle cx="{x(i):.1f}" cy="{y(float(v)):.1f}" r="4" fill="{s["color"]}"/>'
                 )
         last_v = float(s["points"][-1][1])
-        # Stagger end labels so two series do not share a line.
-        lift = 10 + s_i * 16
+        label = end_labels[s_i]
+        label_w = _text_width(label, font)
+        # Baseline sits with the line's end, in the gutter to its right.
+        ly = y(last_v) + font * 0.32
+        ly = min(max(ly, 8 + glyph_above), height - 40 - glyph_below)
+        lx = x(len(labels) - 1) + 12
+        box_top = ly - glyph_above
+        box_bottom = ly + glyph_below
+        for prev_top, prev_bottom, prev_left, prev_right in occupied:
+            separated_x = lx > prev_right + 6 or lx + label_w < prev_left - 6
+            separated_y = box_top > prev_bottom + 6 or box_bottom < prev_top - 6
+            if separated_x or separated_y:
+                continue
+            ly = max(8 + glyph_above, prev_top - 6 - glyph_below)
+            box_top = ly - glyph_above
+            box_bottom = ly + glyph_below
+        occupied.append((box_top, box_bottom, lx, lx + label_w))
         parts.append(
-            f'<text class="bar-label" x="{x(len(labels) - 1) - 8:.1f}" y="{y(last_v) - lift:.1f}" '
-            f'text-anchor="end" fill="{s["color"]}">{_esc(s["name"])} {last_v:,.0f}</text>'
+            f'<text class="bar-label" x="{lx:.1f}" y="{ly:.1f}" '
+            f'text-anchor="start" fill="{s["color"]}">{_esc(label)}</text>'
         )
     tick_at = set(range(0, len(labels), max(len(labels) // 6, 1)))
     tick_at.add(len(labels) - 1)

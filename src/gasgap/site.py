@@ -88,6 +88,8 @@ h1 { margin: 4px 0 6px; font-size: 28px; line-height: 1.2; font-weight: 700; }
 .chart .zero { stroke: #d5deea; stroke-width: 1.5; }
 .chart .axis { fill: #c5d0de; font-size: 13px; }
 .chart .bar-label { fill: #f4f7fb; font-size: 14px; font-weight: 650; }
+.chart .gap { fill: none; stroke: var(--amber); stroke-width: 1.5; }
+.chart .gap-label { fill: var(--amber); font-size: 13px; font-weight: 650; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; color: var(--muted); font-size: 14px; }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; }
 .exact { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
