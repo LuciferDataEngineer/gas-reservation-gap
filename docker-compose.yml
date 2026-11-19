@@ -1,0 +1,46 @@
+services:
+  pipeline:
+    build: .
+    image: gas-reservation-gap
+    volumes:
+      - ./site:/app/site
+      - ./INSIGHTS.md:/app/INSIGHTS.md
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    ports:
+      - "9000:9000"
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_VOLUMES: /data
+
+  nessie:
+    image: ghcr.io/projectnessie/nessie:latest
+    ports:
+      - "19120:19120"
+    depends_on:
+      - rustfs
+    extra_hosts:
+      - "s3host:host-gateway"
+    environment:
+      - nessie.version.store.type=IN_MEMORY
+      - nessie.server.authentication.enabled=false
+      - nessie.server.authorization.enabled=false
+      - nessie.catalog.default-warehouse=warehouse
+      - nessie.catalog.warehouses.warehouse.location=s3://gas-warehouse/
+      - nessie.catalog.service.s3.default-options.region=us-east-1
+      - nessie.catalog.service.s3.default-options.path-style-access=true
+      # Container-to-container on the bridge times out here. The published port via the host gateway does not.
+      # Clients on the runner resolve s3host to 127.0.0.1. See the CI hosts line.
+      - nessie.catalog.service.s3.default-options.endpoint=http://s3host:9000/
+      - nessie.catalog.service.s3.default-options.external-endpoint=http://s3host:9000/
+      - nessie.catalog.service.s3.default-options.access-key=urn:nessie-secret:quarkus:nessie.catalog.secrets.access-key
+      - nessie.catalog.secrets.access-key.name=rustfsadmin
+      - nessie.catalog.secrets.access-key.secret=rustfsadmin
+
+  feldera:
+    image: images.feldera.com/feldera/pipeline-manager:latest
+    ports:
+      - "8080:8080"

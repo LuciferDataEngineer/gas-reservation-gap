@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          python -m playwright install --with-deps chromium
+      - name: Lint
+        run: ruff check src tests && ruff format --check src tests
+      - name: Tests and pages
+        run: pytest -q -m "not feldera and not iceberg"
+
+  iceberg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Catalog
+        run: |
+          grep -q '[[:space:]]s3host$' /etc/hosts || echo "127.0.0.1 s3host" | sudo tee -a /etc/hosts
+          docker compose up -d rustfs nessie
+      - name: Wait for Nessie
+        run: |
+          for i in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:19120/api/v2/config && exit 0
+            sleep 3
+          done
+          docker compose logs nessie rustfs
+          exit 1
+      - name: Write, audit, publish
+        run: pytest -q -m iceberg
+
+  feldera:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Engine
+        run: docker compose up -d feldera
+      - name: Wait for Feldera
+        run: |
+          for i in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:8080/v0/config >/dev/null && exit 0
+            sleep 3
+          done
+          docker compose logs feldera
+          exit 1
+      - name: Incremental total matches DuckDB
+        run: pytest -q -m feldera
